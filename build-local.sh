@@ -1,27 +1,30 @@
 #!/bin/bash
 
+VER="1"
+
 docker build \
   --target builder \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
-  --build-arg BUILD_NUMBER="sl-custom:1" \
-  --cache-from "sl-custom-builder:1" \
-  --tag "sl-custom-builder:1"
-
-exit 1
+  --build-arg BUILD_NUMBER="sl-custom:$VER" \
+  --cache-from "sl-custom-builder:$VER" \
+  --tag "sl-custom-builder:$VER" \
+  .
 
 docker build \
-  --target api
+  --target api \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
-  --build-arg BUILD_NUMBER="sl-custom:1" \
-  --cache-from "sl-custom-builder:1" \
-  --cache-from "sl-custom-api:1" \
-  --tag "sl-custom-api:1"
+  --build-arg BUILD_NUMBER="sl-custom:$VER" \
+  --cache-from "sl-custom-builder:$VER" \
+  --cache-from "sl-custom-api:$VER" \
+  --tag "sl-custom-api:$VER" \
+  .
 
 docker build \
-  --target poller
-  --build-arg BUILDKIT_INLINE_CACHE=1
-  --build-arg BUILD_NUMBER="sl-custom:1" \
-  --cache-from "sl-custom-builder:1" \
-  --cache-from "sl-custom-api:1" \
-  --cache-from "sl-custom-poller:1" \
-  --tag "sl-custom-poller:1"
+  --target poller \
+  --build-arg BUILDKIT_INLINE_CACHE=1 \
+  --build-arg BUILD_NUMBER="sl-custom:$VER" \
+  --cache-from "sl-custom-builder:$VER" \
+  --cache-from "sl-custom-api:$VER" \
+  --cache-from "sl-custom-poller:$VER" \
+  --tag "sl-custom-poller:$VER" \
+  .
