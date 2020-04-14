@@ -28,6 +28,10 @@ namespace :poll do
   task servers: :environment do
     include ApiHelper
 
+    weight_videos = ENV.key?('LOAD_WEIGHT_VIDEOS') ? ENV['LOAD_WEIGHT_VIDEOS'].to_i : 100
+    weight_users = ENV.key?('LOAD_WEIGHT_USERS') ? ENV['LOAD_WEIGHT_USERS'].to_i : 10
+    weight_meetings = ENV.key?('LOAD_WEIGHT_MEETINGS') ? ENV['LOAD_WEIGHT_MEETINGS'].to_i : 1
+
     Rails.logger.debug('Polling servers')
     Server.all.each do |server|
       Rails.logger.debug("Polling Server id=#{server.id}")
@@ -35,7 +39,19 @@ namespace :poll do
       meetings = resp.xpath('/response/meetings/meeting')
       if server.online
         # Update the load if the server is currently online
-        server.load = meetings.length
+        server_users = 0
+        video_streams = 0
+  
+        meetings.each do |meeting|
+          count = meeting.at_xpath('participantCount')
+          users = count.present? ? count.text.to_i : 0
+          server_users += users
+  
+          streams = meeting.at_xpath('videoCount')
+          video_streams += streams.present? ? streams.text.to_i : 0
+        end
+  
+        server.load = video_streams * weight_videos + server_users * weight_users + meetings.length * weight_meetings
       else
         # Only bring the server online if the number of successful requests is >= the acceptable threshold
         next if server.increment_healthy < Rails.configuration.x.server_healthy_threshold
