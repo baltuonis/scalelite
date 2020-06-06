@@ -51,18 +51,21 @@ namespace :poll do
           video_streams += streams.present? ? streams.text.to_i : 0
         end
   
-        server.load = video_streams * weight_videos + server_users * weight_users + meetings.length * weight_meetings
+        load = video_streams * weight_videos + server_users * weight_users + meetings.length * weight_meetings
+        server.load = load * (server.load_multiplier.nil? ? 1.0 : server.load_multiplier.to_d)
       else
         # Only bring the server online if the number of successful requests is >= the acceptable threshold
         next if server.increment_healthy < Rails.configuration.x.server_healthy_threshold
 
         Rails.logger.info("Server id=#{server.id} is healthy. Bringing back online...")
         server.reset_counters
-        server.load = meetings.length
+        load = video_streams * weight_videos + server_users * weight_users + meetings.length * weight_meetings
+        server.load = load * (server.load_multiplier.nil? ? 1.0 : server.load_multiplier.to_d
         server.online = true
       end
     rescue StandardError => e
       Rails.logger.warn("Failed to get server id=#{server.id} status: #{e}")
+
       next unless server.online # Only check healthiness if server is currently online
 
       # Only take the server offline if the number of failed requests is >= the acceptable threshold

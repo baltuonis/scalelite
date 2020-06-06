@@ -44,6 +44,7 @@ task status: :environment do
                         videos: video_streams
                       ))
 
+    # Sort list of servers
     servers_info = servers_info.sort_by(&:hostname)
   end
 
