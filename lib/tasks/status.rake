@@ -43,6 +43,8 @@ task status: :environment do
                         largest: users_in_largest_meeting,
                         videos: video_streams
                       ))
+
+    servers_info = servers_info.sort_by(&:hostname)
   end
 
   table = Tabulo::Table.new(servers_info, border: :blank) do |t|
