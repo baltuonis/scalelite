@@ -59,6 +59,20 @@ namespace :poll do
 
         Rails.logger.info("Server id=#{server.id} is healthy. Bringing back online...")
         server.reset_counters
+
+        # Update the load if the server is currently online
+        server_users = 0
+        video_streams = 0
+
+        meetings.each do |meeting|
+          count = meeting.at_xpath('participantCount')
+          users = count.present? ? count.text.to_i : 0
+          server_users += users
+  
+          streams = meeting.at_xpath('videoCount')
+          video_streams += streams.present? ? streams.text.to_i : 0
+        end
+        
         load = video_streams * weight_videos + server_users * weight_users + meetings.length * weight_meetings
         server.load = load * (server.load_multiplier.nil? ? 1.0 : server.load_multiplier.to_d)
         server.online = true
