@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VER="4"
+VER="5"
 
 docker build \
   --target builder \
